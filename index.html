@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Access Tamil tech terms easily with Keni. Draw knowledge from the well with precision and accessibility.">
+  <base target="_top">
+  <style>
+    /* Define the Color Palette */
+    :root {
+      --background-color: #4C9BA9;
+      --container-bg-color: #ffffff;
+      --primary-color: #4CAF50;
+      --button-color: #166B79;
+      --button-hover-color: #3e8e41;
+      --text-color: #333333;
+      --shadow-color: rgba(0, 0, 0, 0.1);
+      --border-radius: 8px;
+      --transition-speed: 0.3s;
+    }
+
+    /* Global Styles */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start; /* Align items to the top */
+      min-height: 100vh;
+    }
+
+    /* Container Styling */
+    main.container {
+      max-width: 700px;
+      width: 100%;
+      padding: 20px; /* Reduced padding for better spacing */
+      background-color: var(--container-bg-color);
+      border-radius: var(--border-radius);
+      box-shadow: 0px 4px 12px var(--shadow-color);
+      text-align: center;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* Center items horizontally */
+      justify-content: flex-start; /* Align items to the top */
+      margin-top: 20px;
+    }
+
+    /* Logo and Header Container */
+    .header-container {
+      margin-bottom: 10px; /* Reduced space below the header */
+    }
+
+    .logo {
+      width: 80%; /* Make the logo responsive */
+      max-width: 250px; /* Maintain a maximum width */
+      height: auto; /* Keep aspect ratio */
+      margin-bottom: -90px;
+      margin-top: -90px;
+    }
+
+    h3 {
+      font-size: 1rem;
+      color: #166B79;
+      font-style: italic;
+      margin: 5px 0; /* Adjust margin for spacing */
+      text-align: center;
+    }
+
+    /* Input, Dropdown, and Button Styling */
+    .input-field, .dropdown {
+      width: 100%;
+      padding: 10px; /* Reduced padding for input fields */
+      margin: 10px 0; /* Reduced margin between fields */
+      font-size: 1rem;
+      border-radius: var(--border-radius);
+      border: 1px solid #dddddd;
+      background-color: #ffffff; /* Keep background color white */
+      color: #000000; /* Keep text color black */
+      transition: border-color var(--transition-speed);
+    }
+
+    button {
+      width: 30%;
+      background-color: var(--button-color);
+      color: #ffffff;
+      padding: 10px; /* Reduced padding for the button */
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background-color var(--transition-speed), transform var(--transition-speed);
+    }
+
+    button:hover {
+      background-color: var(--button-hover-color);
+      transform: scale(1.02);
+    }
+
+    /* Loading Messages */
+    .loading-message {
+      margin: 10px auto; /* Adjusted margin */
+      opacity: 0;
+      transition: opacity 0.5s;
+      display: none; /* Hidden initially */
+    }
+
+    #detailsContainer {
+      display: none; /* Keep this initially hidden */
+      margin-top: 15px; /* Add margin to push it down */
+      text-align: left; /* Align text to the left for better readability */
+    }
+
+    /* Responsive Styles */
+@media (max-width: 1000px) {
+  main.container {
+    padding: 60px; /* Increase padding for smaller screens */
+  }
+  
+  h3 {
+    font-size: 2.28rem; /* Increase font size for the heading */
+  }
+
+  button {
+    width: 300px;
+    height: 50px;
+    font-size: 1.15rem;
+  }
+
+  .input-field, .dropdown {
+    height: 40px;
+    font-size: 1.15rem;
+  }
+
+  #detailsContainer {
+    font-size: 1.6rem;
+  }
+
+  button {
+    padding: 12px; /* Increase button padding */
+  }
+
+  /* Optional: Increase margin for the header container */
+  .header-container {
+    margin-bottom: 20px; /* Increase space below the header */
+  }
+}
+  </style>
+</head>
+<body>
+  <main class="container">
+    <div class="header-container">
+      <img src="https://i.imgur.com/eJGWaUk.png" alt="Keni Logo" class="logo">
+      <h3>Dipping into the Depths - Find Tamizh terms with one search</h3>
+    </div>
+
+    <input type="text" id="searchInput" class="input-field" placeholder="What knowledge would you like to draw today?" aria-label="Search for Tamil technical terms">
+    <button onclick="searchWord()" aria-label="Search button">Draw from the Well</button>
+
+    <div id="loadingMessages" class="loading-message"></div>
+    
+    <select id="resultsDropdown" class="dropdown" onchange="fetchDetails()" aria-label="Results Dropdown" style="display: none;">
+      <option value="">Select a result</option>
+    </select>
+    
+    <div id="detailsContainer">
+      <h3>Details:</h3>
+      <p><strong>Sheet Name:</strong> <span id="sheetName"></span></p>
+      <p><strong>Row Number:</strong> <span id="rowNumber"></span></p>
+      <p><strong>Subject:</strong> <span id="subject"></span></p>
+      <p><strong>Tamil Word:</strong> <span id="tamilWord"></span></p>
+    </div>
+  </main>
+
+  <script>
+    const messages = [
+      "Lowering the bucket... hold on!",
+      "Drawing knowledge from the depths...",
+      "Dipping into the keni for answers...",
+      "The well is working... almost there!",
+      "Fetching drops of knowledge… please wait.",
+      "Listening to whispers from the keni..."
+    ];
+    let currentMessageIndex = 0;
+    let cycleInterval;
+
+    async function searchWord() {
+  const wordToSearch = document.getElementById("searchInput").value.trim();
+  if (!wordToSearch) return;
+
+  // Clear previous results
+  clearPreviousResults();
+
+  showLoading();
+  startCycleMessages();
+
+  google.script.run
+    .withSuccessHandler((results) => {
+      stopCycleMessages();
+      hideLoading();
+      populateDropdown(results);
+    })
+    .withFailureHandler((error) => {
+      console.error("Error fetching results:", error);
+      stopCycleMessages();
+      hideLoading();
+      alert("There was an error fetching results.");
+    })
+    .searchMultipleWords(wordToSearch.toLowerCase());
+}
+
+function clearPreviousResults() {
+  // Clear the dropdown
+  const dropdown = document.getElementById("resultsDropdown");
+  dropdown.innerHTML = "<option value=''>Select a result</option>";
+  dropdown.style.display = "none"; // Hide dropdown
+
+  // Clear and hide the details container
+  const detailsContainer = document.getElementById("detailsContainer");
+  detailsContainer.style.display = "none";
+  document.getElementById("sheetName").innerText = "";
+  document.getElementById("rowNumber").innerText = "";
+  document.getElementById("subject").innerText = "";
+  document.getElementById("tamilWord").innerText = "";
+}
+
+    function startCycleMessages() {
+      const loadingMessagesDiv = document.getElementById("loadingMessages");
+      loadingMessagesDiv.style.display = "block";
+
+      cycleInterval = setInterval(() => {
+        loadingMessagesDiv.style.opacity = 0;
+        setTimeout(() => {
+          loadingMessagesDiv.innerText = messages[currentMessageIndex];
+          loadingMessagesDiv.style.opacity = 1;
+        }, 500); // Delay to allow fading out
+        currentMessageIndex = (currentMessageIndex + 1) % messages.length;
+      }, 3000);
+    }
+
+    function stopCycleMessages() {
+      clearInterval(cycleInterval);
+      document.getElementById("loadingMessages").innerText = messages[messages.length - 1];
+      document.getElementById("loadingMessages").style.opacity = 1;
+    }
+
+    function showLoading() {
+      const loadingMessagesDiv = document.getElementById("loadingMessages");
+      loadingMessagesDiv.style.display = "block";
+      loadingMessagesDiv.innerText = messages[0]; // Show the first message immediately
+      loadingMessagesDiv.style.opacity = 1;
+    }
+
+    function hideLoading() {
+      const loadingMessagesDiv = document.getElementById("loadingMessages");
+      loadingMessagesDiv.style.display = "none";
+      loadingMessagesDiv.style.opacity = 0;
+    }
+
+    function populateDropdown(results) {
+      const dropdown = document.getElementById("resultsDropdown");
+      dropdown.innerHTML = "<option value=''>Select a result</option>";
+      dropdown.style.display = "block";
+
+      if (results && results.length > 0) {
+        results.forEach(result => {
+          const option = document.createElement("option");
+          option.value = `${result.originalWord} (${result.subject})`;
+          option.textContent = `${result.originalWord} (${result.subject})`;
+          option.dataset.sheetName = result.sheetName;
+          option.dataset.rowNumber = result.rowNumber;
+          option.dataset.subject = result.subject;
+          option.dataset.tamilWord = result.tamilWord;
+          dropdown.appendChild(option);
+        });
+        dropdown.disabled = false;
+      } else {
+        dropdown.innerHTML = "<option>No results found</option>";
+        dropdown.disabled = true;
+      }
+    }
+
+    function fetchDetails() {
+      const dropdown = document.getElementById("resultsDropdown");
+      const selectedOption = dropdown.options[dropdown.selectedIndex];
+      const detailsContainer = document.getElementById("detailsContainer");
+
+      if (selectedOption.value) {
+        document.getElementById("sheetName").innerText = selectedOption.dataset.sheetName;
+        document.getElementById("rowNumber").innerText = selectedOption.dataset.rowNumber;
+        document.getElementById("subject").innerText = selectedOption.dataset.subject;
+        document.getElementById("tamilWord").innerText = selectedOption.dataset.tamilWord;
+        detailsContainer.style.display = "block";
+      } else {
+        detailsContainer.style.display = "none";
+      }
+    }
+  </script>
+</body>
+</html>
